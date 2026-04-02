@@ -837,6 +837,40 @@ td.m{color:var(--ink3)}
   </div>
 </div>
 
+<!-- MODAL: VER / EDITAR PRONTUARIO -->
+<div class="overlay" id="m-view-pront" style="display:none">
+  <div class="modal modal-lg">
+    <div class="mh">
+      <div>
+        <div class="mt" id="vp-titulo">Prontuario</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:2px">
+          <span id="vp-psi"></span> &nbsp;·&nbsp; <span id="vp-data"></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn-ghost btn-sm" onclick="baixarProntuario(PRONT_EDIT_ID,'pdf')">Baixar PDF</button>
+        <button class="btn btn-ghost btn-sm" onclick="baixarProntuario(PRONT_EDIT_ID,'doc')">Baixar DOC</button>
+        <button class="xbtn" onclick="closeModal('m-view-pront')">x</button>
+      </div>
+    </div>
+    <div class="mb">
+      <div style="background:linear-gradient(135deg,#f0f8ec,#e8f4ff);border:2px solid rgba(168,192,154,.35);border-radius:var(--r-sm);padding:10px 14px;font-size:12.5px;color:var(--ink2);margin-bottom:16px">
+        Clique em qualquer campo abaixo para editar o conteudo diretamente.
+      </div>
+      <div class="ps"><div class="pl">Resumo da sessao</div><div class="pb" id="vp-resumo" contenteditable="true"></div></div>
+      <div class="ps"><div class="pl">Conteudo trazido pelo paciente</div><div class="pb" id="vp-conteudo" contenteditable="true"></div></div>
+      <div class="ps"><div class="pl">Intervencoes realizadas</div><div class="pb" id="vp-interv" contenteditable="true"></div></div>
+      <div class="ps"><div class="pl">Evolucao clinica observada</div><div class="pb" id="vp-evolclin" contenteditable="true"></div></div>
+      <div class="ps"><div class="pl">Plano terapeutico</div><div class="pb" id="vp-plano" contenteditable="true"></div></div>
+      <div class="ps"><div class="pl">Observacoes adicionais</div><textarea class="ta" id="vp-obs" placeholder="Observacoes complementares..."></textarea></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal('m-view-pront')">Fechar sem salvar</button>
+      <button class="btn btn-primary" onclick="salvarEdicaoPront()">Salvar alteracoes</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast" style="display:none"><span id="t-icon">✓</span><span id="t-msg">Salvo</span></div>
 
@@ -852,7 +886,7 @@ let TOKEN = localStorage.getItem('ak_token')||'';
 let USER  = JSON.parse(localStorage.getItem('ak_user')||'null');
 
 // Estado local
-let PACIENTES=[], AGENDAMENTOS=[], LANCAMENTOS=[], ESPERA=[], PSICOLOGAS=[];
+let PACIENTES=[], AGENDAMENTOS=[], LANCAMENTOS=[], ESPERA=[], PSICOLOGAS=[], PRONTUARIOS=[];
 let SESSAO_ATUAL={}, AGEND_SEL=null, PAC_EDIT=null;
 let modoAtual='colar', recog=null, isRec=false, recSecs=0, recIv=null;
 let semOffset=0;
@@ -1111,15 +1145,28 @@ function mpTab(tab) {
   if(tab==='hist'&&PAC_EDIT) renderHistPaciente(PAC_EDIT);
 }
 
-function renderHistPaciente(id) {
-  const pronts=AGENDAMENTOS.filter(a=>a.pacienteId===id).sort((a,b)=>b.data.localeCompare(a.data));
+async function renderHistPaciente(id) {
+  // Buscar prontuários do servidor se não tiver local
+  if (!PRONTUARIOS.filter(p=>p.pacienteId===id).length) {
+    const r = await apiFetch('/prontuarios?pacienteId='+id);
+    if (r) { r.forEach(p=>{ if(!PRONTUARIOS.find(x=>x.id===p.id)) PRONTUARIOS.push(p); }); }
+  }
+  const pronts = PRONTUARIOS.filter(p=>p.pacienteId===id).sort((a,b)=>b.data?.localeCompare(a.data));
   document.getElementById('hist-total').textContent=pronts.length;
   document.getElementById('hist-lista').innerHTML=pronts.length
-    ? pronts.map(a=>`<div class="sess-item">
-        <div class="sess-date">${a.data} - ${a.hora} - ${a.tipo||'Sessao'}</div>
-        <div class="sess-resumo">${a.observacoes||'Sessao realizada'}</div>
+    ? pronts.map(p=>`
+      <div class="sess-item" onclick="abrirProntuario('${p.id}')">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="sess-date">${p.data||'—'}${p.geradoPorIA?' · <span class=\'pill p-lav\' style=\'font-size:9px;padding:1px 7px\'>IA</span>':''}</div>
+          <div style="display:flex;gap:5px" onclick="event.stopPropagation()">
+            <button class="btn btn-ghost btn-xs" onclick="abrirProntuario('${p.id}')">Ver / Editar</button>
+            <button class="btn btn-ghost btn-xs" onclick="baixarProntuario('${p.id}','pdf')">PDF</button>
+            <button class="btn btn-ghost btn-xs" onclick="baixarProntuario('${p.id}','doc')">DOC</button>
+          </div>
+        </div>
+        <div class="sess-resumo">${p.resumo||'Sessao registrada sem resumo automatico.'}</div>
       </div>`).join('')
-    : '<div style="color:var(--ink3);font-size:13px;text-align:center;padding:20px">Nenhuma sessao registrada ainda</div>';
+    : '<div style="color:var(--ink3);font-size:13px;text-align:center;padding:20px">Nenhum prontuario registrado ainda</div>';
 }
 
 async function salvarPaciente() {
@@ -1420,7 +1467,12 @@ async function gerarEvolucao(texto) {
   setTimeout(()=>{
     document.getElementById('evol-load').style.display='none';
     document.getElementById('evol-ok').style.display='block';
-    if(r?.prontuario) preencherEvol(r.prontuario);
+    if(r?.prontuario) {
+      // Guardar em memória local
+      if (!PRONTUARIOS.find(p=>p.id===r.prontuario.id)) PRONTUARIOS.push(r.prontuario);
+      SESSAO_ATUAL.prontuarioId = r.prontuario.id;
+      preencherEvol(r.prontuario);
+    }
     else preencherEvol({resumo:'Sessao realizada com boa adesao do paciente.',conteudo:'Paciente trouxe conteudos relevantes para o processo terapeutico.',intervencoes:'Foram aplicadas tecnicas conforme a abordagem terapeutica escolhida.',evolucaoClinica:'Paciente demonstra evolucao consistente no processo.',plano:'Dar continuidade ao plano terapeutico estabelecido.'});
   },400);
 }
@@ -1431,19 +1483,35 @@ function preencherEvol(p){
   document.getElementById('e-interv').textContent=p.intervencoes||'';
   document.getElementById('e-evolclin').textContent=p.evolucaoClinica||p.evolucao_clinica||'';
   document.getElementById('e-plano').textContent=p.plano||'';
+  // Guardar id para salvar edições depois
+  if (p.id) SESSAO_ATUAL.prontuarioId = p.id;
 }
 
 async function salvarSessao() {
+  // Salvar edições manuais feitas nos campos
+  if (SESSAO_ATUAL?.prontuarioId) {
+    const body = {
+      resumo:          document.getElementById('e-resumo').textContent,
+      conteudo:        document.getElementById('e-conteudo').textContent,
+      intervencoes:    document.getElementById('e-interv').textContent,
+      evolucaoClinica: document.getElementById('e-evolclin').textContent,
+      plano:           document.getElementById('e-plano').textContent,
+      observacoes:     document.getElementById('e-obs').value,
+    };
+    await apiFetch('/prontuarios/'+SESSAO_ATUAL.prontuarioId, { method:'PATCH', body });
+    const idx = PRONTUARIOS.findIndex(p=>p.id===SESSAO_ATUAL.prontuarioId);
+    if (idx>=0) Object.assign(PRONTUARIOS[idx], body);
+  }
   setStep(4);
   document.getElementById('et-evol').style.display='none';
   document.getElementById('et-salvo').style.display='block';
   const sel=document.getElementById('s-pac');
-  const nome=sel.options[sel.selectedIndex]?.text||'Paciente';
-  document.getElementById('salvo-info').textContent=nome+' - '+document.getElementById('s-data').value;
-  // Atualizar contador local
+  const nomePac=sel.options[sel.selectedIndex]?.text||'Paciente';
+  document.getElementById('salvo-info').textContent=nomePac+' - '+document.getElementById('s-data').value;
   const i=PACIENTES.findIndex(p=>p.id===document.getElementById('s-pac').value);
   if(i>=0) PACIENTES[i].totalSessoes=(PACIENTES[i].totalSessoes||0)+1;
-  renderDash(); toast('Prontuario salvo','🌿');
+  renderDash();
+  toast('Prontuario salvo com sucesso','🌿');
 }
 
 function novaSessao(){initSessao();}
@@ -1561,6 +1629,133 @@ function openModal(id){
 }
 function closeModal(id){document.getElementById(id).style.display='none';}
 document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',function(e){if(e.target===this)this.style.display='none';}));
+
+// ==============================
+// PRONTUARIO — VER / EDITAR / BAIXAR
+// ==============================
+let PRONT_EDIT_ID = null;
+
+function abrirProntuario(id) {
+  PRONT_EDIT_ID = id;
+  const p = PRONTUARIOS.find(x=>x.id===id); if(!p)return;
+  const pac = PACIENTES.find(x=>x.id===p.pacienteId);
+  const psi = PSICOLOGAS.find(x=>x.id===p.psiId);
+  document.getElementById('vp-titulo').textContent = (pac?.nome||'Paciente')+' — '+p.data;
+  document.getElementById('vp-psi').textContent = psi?.nome||'—';
+  document.getElementById('vp-data').textContent = p.data||'—';
+  document.getElementById('vp-resumo').textContent     = p.resumo||'';
+  document.getElementById('vp-conteudo').textContent   = p.conteudo||'';
+  document.getElementById('vp-interv').textContent     = p.intervencoes||'';
+  document.getElementById('vp-evolclin').textContent   = p.evolucaoClinica||'';
+  document.getElementById('vp-plano').textContent      = p.plano||'';
+  document.getElementById('vp-obs').value              = p.observacoes||'';
+  openModal('m-view-pront');
+}
+
+async function salvarEdicaoPront() {
+  if (!PRONT_EDIT_ID) return;
+  const body = {
+    resumo:          document.getElementById('vp-resumo').textContent,
+    conteudo:        document.getElementById('vp-conteudo').textContent,
+    intervencoes:    document.getElementById('vp-interv').textContent,
+    evolucaoClinica: document.getElementById('vp-evolclin').textContent,
+    plano:           document.getElementById('vp-plano').textContent,
+    observacoes:     document.getElementById('vp-obs').value,
+  };
+  const r = await apiFetch('/prontuarios/'+PRONT_EDIT_ID, { method:'PATCH', body });
+  if (r) {
+    const idx = PRONTUARIOS.findIndex(p=>p.id===PRONT_EDIT_ID);
+    if (idx>=0) Object.assign(PRONTUARIOS[idx], body);
+    toast('Prontuario atualizado','✓');
+    closeModal('m-view-pront');
+    if (PAC_EDIT) renderHistPaciente(PAC_EDIT);
+  } else { toast('Erro ao salvar','⚠️'); }
+}
+
+function baixarProntuario(id, formato) {
+  const p = PRONTUARIOS.find(x=>x.id===id)||
+            { resumo: document.getElementById('vp-resumo')?.textContent,
+              conteudo: document.getElementById('vp-conteudo')?.textContent,
+              intervencoes: document.getElementById('vp-interv')?.textContent,
+              evolucaoClinica: document.getElementById('vp-evolclin')?.textContent,
+              plano: document.getElementById('vp-plano')?.textContent,
+              observacoes: document.getElementById('vp-obs')?.value,
+              data: document.getElementById('vp-data')?.textContent };
+  const pac = PACIENTES.find(x=>x.id===p?.pacienteId);
+  const psi = PSICOLOGAS.find(x=>x.id===p?.psiId);
+
+  const conteudo = `EVOLUCAO DE PRONTUARIO
+${'='.repeat(50)}
+Paciente  : ${pac?.nome||'—'}
+Psicologa : ${psi?.nome||'—'}
+Data      : ${p?.data||'—'}
+${'='.repeat(50)}
+
+RESUMO DA SESSAO
+${p?.resumo||''}
+
+CONTEUDO TRAZIDO PELO PACIENTE
+${p?.conteudo||''}
+
+INTERVENCOES REALIZADAS
+${p?.intervencoes||''}
+
+EVOLUCAO CLINICA OBSERVADA
+${p?.evolucaoClinica||''}
+
+PLANO TERAPEUTICO
+${p?.plano||''}
+
+${p?.observacoes?'OBSERVACOES ADICIONAIS\n'+p.observacoes:''}
+
+${'='.repeat(50)}
+Documento gerado pelo Sistema Akairos
+${new Date().toLocaleDateString('pt-BR')}`;
+
+  if (formato === 'pdf') {
+    // Gerar PDF via janela de impressão formatada
+    const nomePac = (pac?.nome||'paciente').replace(/\s+/g,'-').toLowerCase();
+    const win = window.open('','_blank');
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Prontuario ${pac?.nome||''} ${p?.data||''}</title>
+    <style>
+      body{font-family:'Segoe UI',Arial,sans-serif;max-width:720px;margin:40px auto;color:#2d2820;font-size:13px;line-height:1.7}
+      h1{font-size:20px;margin-bottom:4px;color:#2d2820}
+      .meta{color:#8a7d6e;font-size:12px;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid #e8d5bb}
+      h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#8a7d6e;margin:20px 0 6px}
+      p{background:#fdf6ee;border-left:3px solid #a8c09a;padding:10px 14px;border-radius:0 8px 8px 0;white-space:pre-line}
+      .footer{margin-top:40px;padding-top:12px;border-top:1px solid #e8d5bb;font-size:11px;color:#b8ad9e;text-align:center}
+      @media print{body{margin:20px}}
+    </style></head><body>
+    <h1>Evolucao de Prontuario</h1>
+    <div class="meta">
+      <strong>${pac?.nome||'—'}</strong> &nbsp;·&nbsp; ${psi?.nome||'—'} &nbsp;·&nbsp; ${p?.data||'—'}
+    </div>
+    ${[['RESUMO DA SESSAO',p?.resumo],['CONTEUDO TRAZIDO PELO PACIENTE',p?.conteudo],['INTERVENCOES REALIZADAS',p?.intervencoes],['EVOLUCAO CLINICA OBSERVADA',p?.evolucaoClinica],['PLANO TERAPEUTICO',p?.plano],p?.observacoes?['OBSERVACOES ADICIONAIS',p.observacoes]:null].filter(Boolean).map(([t,c])=>`<h2>${t}</h2><p>${c||'—'}</p>`).join('')}
+    <div class="footer">Gerado pelo Sistema Akairos &nbsp;·&nbsp; ${new Date().toLocaleDateString('pt-BR')}</div>
+    <script>window.onload=function(){window.print();}<\/script>
+    </body></html>`);
+    win.document.close();
+  } else {
+    // DOC — baixar como .doc (HTML que Word abre)
+    const nomePac = (pac?.nome||'paciente').replace(/\s+/g,'-').toLowerCase();
+    const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Prontuario</title><style>body{font-family:Arial;font-size:12pt;line-height:1.7;margin:2cm}h1{font-size:16pt}h2{font-size:10pt;text-transform:uppercase;color:#666;margin-top:18pt}p{margin:4pt 0 12pt;white-space:pre-line}.hr{border-top:1pt solid #ccc;margin:12pt 0}</style></head><body>
+    <h1>Evolucao de Prontuario</h1>
+    <div class="hr"></div>
+    <p><b>Paciente:</b> ${pac?.nome||'—'}<br><b>Psicologa:</b> ${psi?.nome||'—'}<br><b>Data:</b> ${p?.data||'—'}</p>
+    <div class="hr"></div>
+    ${[['RESUMO DA SESSAO',p?.resumo],['CONTEUDO TRAZIDO PELO PACIENTE',p?.conteudo],['INTERVENCOES REALIZADAS',p?.intervencoes],['EVOLUCAO CLINICA OBSERVADA',p?.evolucaoClinica],['PLANO TERAPEUTICO',p?.plano],p?.observacoes?['OBSERVACOES ADICIONAIS',p.observacoes]:null].filter(Boolean).map(([t,c])=>`<h2>${t}</h2><p>${c||'—'}</p>`).join('')}
+    <div class="hr"></div>
+    <p style="font-size:9pt;color:#aaa">Gerado pelo Sistema Akairos — ${new Date().toLocaleDateString('pt-BR')}</p>
+    </body></html>`;
+    const blob = new Blob([html], { type:'application/msword' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `prontuario-${nomePac}-${p?.data||'sem-data'}.doc`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+}
 
 // ==============================
 // UTILS
