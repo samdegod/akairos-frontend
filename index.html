@@ -570,7 +570,7 @@ td.muted { color: var(--ink3); }
       </button>
 
       <div style="margin-top:16px;font-size:12px;color:var(--ink3);text-align:center">
-        Demo: carol@clinica.com · senha123
+        Demo: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="88ebe9fae7e4c8ebe4e1e6e1ebe9a6ebe7e5">[email&#160;protected]</a> · senha123
       </div>
     </div>
 
@@ -620,6 +620,10 @@ td.muted { color: var(--ink3); }
       <div class="nav-item" onclick="nav('equipe')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="5" r="2.5"/><path d="M1 13c0-2.2 1.8-4 4-4s4 1.8 4 4"/><circle cx="12" cy="5" r="2.5"/><path d="M10 13c0-2.2 1.8-4 4-4"/></svg>
         Equipe
+      </div>
+      <div class="nav-item" onclick="nav('configuracoes')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/></svg>
+        Configurações
       </div>
     </div>
     <div class="sidebar-footer">
@@ -787,38 +791,71 @@ td.muted { color: var(--ink3); }
         <div id="etapa-transcricao" style="display:none">
           <div class="clay" style="padding:22px;margin-bottom:14px">
             <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px">Modo de entrada</div>
-            <div class="mode-tabs">
-              <div class="mode-tab active" id="tab-ao-vivo" onclick="setModo('ao-vivo')">🎙 Gravar ao vivo</div>
-              <div class="mode-tab" id="tab-upload" onclick="setModo('upload')">📎 Upload / texto</div>
+            <!-- Dica do fluxo recomendado -->
+            <div style="background:linear-gradient(135deg,#f0f8ec,#e8f4ff);border:2px solid rgba(168,192,154,0.35);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start">
+              <div style="font-size:20px;flex-shrink:0">💡</div>
+              <div>
+                <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px">Fluxo recomendado com Google Meet</div>
+                <div style="font-size:12.5px;color:var(--ink2);line-height:1.65">
+                  <strong>1.</strong> Faça a sessão normalmente no Meet com câmera e microfone livres<br>
+                  <strong>2.</strong> Ao terminar, baixe a gravação do Google Drive (ou use outro gravador)<br>
+                  <strong>3.</strong> Volte aqui, cole a transcrição gerada pelo Meet <em>ou</em> escreva suas anotações<br>
+                  <strong>4.</strong> A IA gera o prontuário completo em segundos
+                </div>
+              </div>
             </div>
 
-            <!-- AO VIVO -->
-            <div id="modo-ao-vivo">
+            <div class="mode-tabs">
+              <div class="mode-tab active" id="tab-upload" onclick="setModo('upload')">📎 Colar transcrição do Meet</div>
+              <div class="mode-tab" id="tab-anotacoes" onclick="setModo('anotacoes')">✏️ Escrever anotações</div>
+              <div class="mode-tab" id="tab-ao-vivo" onclick="setModo('ao-vivo')">🎙 Gravar ao vivo</div>
+            </div>
+
+            <!-- COLAR TRANSCRIÇÃO -->
+            <div id="modo-upload">
+              <div class="form-group">
+                <label class="form-label">Transcrição da sessão</label>
+                <textarea class="textarea" id="upload-texto" style="min-height:200px"
+                  placeholder="Cole aqui a transcrição gerada pelo Google Meet, Otter.ai, ou qualquer outro app de transcrição.
+
+O Meet gera a transcrição automaticamente — ao terminar a reunião, acesse o Google Drive e abra o arquivo de transcrição. Selecione tudo (Ctrl+A), copie (Ctrl+C) e cole aqui."></textarea>
+              </div>
+            </div>
+
+            <!-- ANOTAÇÕES MANUAIS -->
+            <div id="modo-anotacoes" style="display:none">
+              <div class="form-group">
+                <label class="form-label">Anotações da sessão</label>
+                <textarea class="textarea" id="anotacoes-texto" style="min-height:200px"
+                  placeholder="Escreva livremente o que aconteceu na sessão — pode ser em tópicos, texto corrido ou uma mistura.
+
+Exemplos do que incluir:
+• O que o paciente trouxe
+• Humor e estado emocional observado
+• Intervenções que você fez
+• Resposta do paciente
+• O que ficou combinado para a próxima sessão"></textarea>
+              </div>
+            </div>
+
+            <!-- GRAVAR AO VIVO (somente seu microfone — use com ressalvas) -->
+            <div id="modo-ao-vivo" style="display:none">
+              <div style="background:#fdf2d4;border:2px solid var(--amber2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:12px;font-size:12.5px;color:#7a5000">
+                ⚠️ <strong>Atenção:</strong> esta opção captura apenas o seu microfone, não o áudio do paciente. Use somente para consultas presenciais onde ambos estão no mesmo ambiente, ou para ditar suas anotações em voz alta após a sessão.
+              </div>
               <div class="zone" id="rec-zone">
                 <button class="rec-btn" id="rec-btn" onclick="toggleRec()">
                   <svg id="rec-mic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3M8 22h8"/></svg>
                   <svg id="rec-stop" width="24" height="24" viewBox="0 0 24 24" fill="var(--rose2)" style="display:none"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
                 </button>
-                <div class="form-label" id="rec-label" style="margin:0">Clique para gravar a sessão</div>
+                <div class="form-label" id="rec-label" style="margin:0">Clique para iniciar</div>
                 <div style="font-family:monospace;font-size:22px;color:var(--rose2);margin-top:6px;display:none" id="rec-time">00:00</div>
               </div>
               <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between">
-                Transcrição ao vivo
+                Transcrição
                 <button class="btn btn-ghost btn-sm" onclick="limparRec()">Limpar</button>
               </div>
               <div class="live-text" id="live-text">A transcrição aparece aqui em tempo real...</div>
-              <div style="font-size:11px;color:var(--ink4);margin-top:6px">Processado localmente pelo Chrome/Edge · nenhum áudio é enviado para servidores</div>
-            </div>
-
-            <!-- UPLOAD / TEXTO -->
-            <div id="modo-upload" style="display:none">
-              <div class="form-group">
-                <label class="form-label">Transcrição ou anotações da sessão</label>
-                <textarea class="textarea" id="upload-texto" style="min-height:180px"
-                  placeholder="Cole aqui a transcrição gerada por outro app (Otter.ai, Google Meet etc.), ou escreva livremente suas anotações da sessão.
-
-A IA transforma qualquer formato em prontuário estruturado."></textarea>
-              </div>
             </div>
           </div>
 
@@ -964,6 +1001,74 @@ A IA transforma qualquer formato em prontuário estruturado."></textarea>
       </div>
     </div>
 
+    <!-- ── CONFIGURAÇÕES ── -->
+    <div id="page-configuracoes" class="page">
+      <div class="topbar"><div class="topbar-title">Configurações</div></div>
+      <div class="content" style="max-width:640px">
+
+        <!-- Editar perfil -->
+        <div class="clay" style="padding:24px;margin-bottom:16px">
+          <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:18px">Meu perfil</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nome completo</label>
+              <input class="input" id="cfg-nome" placeholder="Dra. Carol Martins">
+            </div>
+            <div class="form-group">
+              <label class="form-label">E-mail</label>
+              <input class="input" id="cfg-email" type="email" placeholder="carol@clinica.com">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Abordagem principal</label>
+            <select class="select" id="cfg-abordagem">
+              <option>TCC</option><option>ACT</option><option>DBT</option>
+              <option>TCC + ACT</option><option>Psicanálise</option><option>Humanista</option>
+            </select>
+          </div>
+          <div class="divider"></div>
+          <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px">Trocar senha</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nova senha</label>
+              <input class="input" id="cfg-senha" type="password" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirmar senha</label>
+              <input class="input" id="cfg-senha2" type="password" placeholder="••••••••">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="salvarPerfil()">Salvar alterações</button>
+        </div>
+
+        <!-- Reset do banco -->
+        <div class="clay" style="padding:24px;margin-bottom:16px">
+          <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Dados do sistema</div>
+          <div style="font-size:13px;color:var(--ink2);margin-bottom:18px;line-height:1.65">
+            Use esta opção para apagar todos os dados de demonstração e começar do zero com os dados reais da clínica. Esta ação não pode ser desfeita.
+          </div>
+          <div style="background:#fce8e6;border:2px solid var(--rose2);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px">
+            <div style="font-size:13px;font-weight:500;color:#7a2820;margin-bottom:4px">⚠️ Atenção</div>
+            <div style="font-size:12.5px;color:#8b3028;line-height:1.6">
+              Apagar os dados remove todos os pacientes, sessões, prontuários, agendamentos e lançamentos financeiros cadastrados. Sua conta de acesso <strong>não</strong> será apagada.
+            </div>
+          </div>
+          <button class="btn btn-rose" onclick="confirmarReset()">Apagar todos os dados e começar do zero</button>
+        </div>
+
+        <!-- Info do sistema -->
+        <div class="clay" style="padding:24px">
+          <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px">Sobre o sistema</div>
+          <div class="fin-row"><span class="label">Versão</span><span>Akairos 1.0</span></div>
+          <div class="fin-row"><span class="label">Backend</span><span style="font-size:12px;color:var(--ink3)">akairos-backend-production.up.railway.app</span></div>
+          <div class="fin-row"><span class="label">Status</span><span class="pill pill-sage" id="cfg-status">Verificando...</span></div>
+          <div class="fin-row"><span class="label">Transcrição</span><span>Web Speech API (Chrome/Edge)</span></div>
+          <div class="fin-row"><span class="label">IA</span><span>Claude Sonnet · Anthropic</span></div>
+        </div>
+
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -1023,7 +1128,7 @@ A IA transforma qualquer formato em prontuário estruturado."></textarea>
   <span id="toast-msg">Salvo</span>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── CONFIG ──
 // Em produção, troque pela URL do seu Railway:
 const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -1233,7 +1338,7 @@ function renderAgenda() {
 }
 
 // ── NAVEGAÇÃO ──
-const pagesMap = {dashboard:0,pacientes:1,sessao:2,agenda:3,financeiro:4,espera:5,equipe:6};
+const pagesMap = {dashboard:0,pacientes:1,sessao:2,agenda:3,financeiro:4,espera:5,equipe:6,configuracoes:7};
 function nav(page) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
@@ -1244,6 +1349,7 @@ function nav(page) {
   if(page==='equipe') renderEquipe();
   if(page==='agenda') renderAgenda();
   if(page==='sessao') iniciarSessao();
+  if(page==='configuracoes') carregarConfig();
 }
 function filtrarPacientes(v) { renderPacientes(v); }
 
@@ -1251,7 +1357,7 @@ function iniciarSessao() {
   ['etapa-dados','etapa-transcricao','etapa-evolucao','etapa-salvo'].forEach(id=>document.getElementById(id).style.display='none');
   document.getElementById('etapa-dados').style.display='block';
   setStep(1);
-  setModo('ao-vivo');
+  setModo('upload');
 }
 
 // ── ETAPAS SESSÃO ──
@@ -1284,6 +1390,7 @@ async function irEtapa3() {
 
 function getTexto() {
   if(modoAtual==='ao-vivo') return document.getElementById('live-text').textContent.replace('A transcrição aparece aqui em tempo real...','').trim();
+  if(modoAtual==='anotacoes') return document.getElementById('anotacoes-texto').value.trim();
   return document.getElementById('upload-texto').value.trim();
 }
 
@@ -1382,8 +1489,10 @@ function setModo(m){
   modoAtual=m;
   document.getElementById('modo-ao-vivo').style.display=m==='ao-vivo'?'block':'none';
   document.getElementById('modo-upload').style.display=m==='upload'?'block':'none';
+  document.getElementById('modo-anotacoes').style.display=m==='anotacoes'?'block':'none';
   document.getElementById('tab-ao-vivo').className='mode-tab'+(m==='ao-vivo'?' active':'');
   document.getElementById('tab-upload').className='mode-tab'+(m==='upload'?' active':'');
+  document.getElementById('tab-anotacoes').className='mode-tab'+(m==='anotacoes'?' active':'');
   if(m!=='ao-vivo'&&isRec) pararRec();
 }
 
@@ -1445,15 +1554,64 @@ function abrirModal(id){document.getElementById(id).style.display='flex';}
 function fecharModal(id){document.getElementById(id).style.display='none';}
 function salvarAgendamento(){fecharModal('modal-agendar');toast('Agendamento confirmado','📅');}
 
-// ── TOAST ──
+// ── CONFIGURAÇÕES ──
+function carregarConfig() {
+  if(USER) {
+    document.getElementById('cfg-nome').value = USER.nome || '';
+    document.getElementById('cfg-email').value = USER.email || '';
+  }
+  // Verificar status do backend
+  api('/health').then(r => {
+    const el = document.getElementById('cfg-status');
+    if(r) { el.textContent = '● Online'; el.className = 'pill pill-sage'; }
+    else   { el.textContent = '● Offline'; el.className = 'pill pill-rose'; }
+  });
+}
+
+async function salvarPerfil() {
+  const nome   = document.getElementById('cfg-nome').value.trim();
+  const email  = document.getElementById('cfg-email').value.trim();
+  const senha  = document.getElementById('cfg-senha').value;
+  const senha2 = document.getElementById('cfg-senha2').value;
+  if(senha && senha !== senha2) { toast('As senhas não coincidem', '⚠️'); return; }
+  if(!nome || !email)           { toast('Nome e e-mail são obrigatórios', '⚠️'); return; }
+
+  const body = { nome, email };
+  if(senha) body.senha = senha;
+
+  const resp = await api('/psicologas/' + USER?.id, { method: 'PATCH', body });
+  if(resp || TOKEN === 'demo') {
+    USER = { ...USER, nome, email };
+    localStorage.setItem('akairos_user', JSON.stringify(USER));
+    const iniciais = nome.split(' ').slice(0,2).map(n=>n[0]).join('');
+    document.getElementById('sb-avatar').textContent = iniciais;
+    document.getElementById('sb-nome').textContent = 'Dra. ' + nome.split(' ').find((p,i)=>i>0) || nome;
+    document.getElementById('cfg-senha').value = '';
+    document.getElementById('cfg-senha2').value = '';
+    toast('Perfil atualizado com sucesso', '✓');
+  } else {
+    toast('Erro ao salvar. Tente novamente.', '⚠️');
+  }
+}
+
+function confirmarReset() {
+  const ok = confirm('Tem certeza? Esta ação apaga TODOS os dados cadastrados (pacientes, sessões, prontuários, agendamentos e financeiro). Sua conta de login não será afetada.\n\nDigite OK para confirmar.');
+  if(!ok) return;
+  resetarDados();
+}
+
+async function resetarDados() {
+  const resp = await api('/admin/reset', { method: 'POST' });
+  // Limpar mocks locais também
+  MOCK.pacientes = [];
+  MOCK.agenda = [];
+  MOCK.financeiro = [];
+  MOCK.espera = [];
+  toast('Dados apagados. Sistema pronto para cadastro real.', '🌿');
+  setTimeout(() => nav('dashboard'), 1500);
+}
+
 let _tt;
 function toast(msg,icon='✓'){
   clearTimeout(_tt);
-  document.getElementById('toast-msg').textContent=msg;
-  document.getElementById('toast-icon').textContent=icon;
-  const t=document.getElementById('toast');t.style.display='flex';
-  _tt=setTimeout(()=>t.style.display='none',3500);
-}
-</script>
-</body>
-</html>
+  document.getElementById('toast
