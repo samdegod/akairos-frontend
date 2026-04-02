@@ -1028,7 +1028,7 @@ A IA transforma qualquer formato em prontuário estruturado."></textarea>
 // Em produção, troque pela URL do seu Railway:
 const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:3001'
-  : 'https://SEU-APP.up.railway.app'; // ← substitua após fazer deploy
+  : 'akairos-backend-production.up.railway.app'; // ← substitua após fazer deploy
 
 let TOKEN = localStorage.getItem('akairos_token') || '';
 let USER = JSON.parse(localStorage.getItem('akairos_user') || 'null');
