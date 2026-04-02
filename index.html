@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akairos · Sistema Clínico</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,300&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Paleta Claymorphism — tons quentes e suaves */
+  --cream:    #fdf6ee;
+  --cream2:   #f7ede0;
+  --cream3:   #f0e2ce;
+  --sand:     #e8d5bb;
+  --sage:     #c8d8c0;
+  --sage2:    #a8c09a;
+  --sage3:    #7fa870;
+  --rose:     #f2c4bc;
+  --rose2:    #e8a098;
+  --sky:      #bcd4e8;
+  --sky2:     #8ab8d8;
+  --lavender: #d4c8e8;
+  --lavender2:#b8a8d8;
+  --amber:    #f0d090;
+  --amber2:   #e0b860;
+  --ink:      #2d2820;
+  --ink2:     #5a4f42;
+  --ink3:     #8a7d6e;
+  --ink4:     #b8ad9e;
+
+  /* Clay shadows — suaves, coloridas, sem preto */
+  --shadow-sm:  0 2px 8px rgba(100,80,50,0.10), 0 1px 3px rgba(100,80,50,0.08);
+  --shadow-md:  0 6px 24px rgba(100,80,50,0.12), 0 2px 8px rgba(100,80,50,0.08);
+  --shadow-lg:  0 12px 40px rgba(100,80,50,0.14), 0 4px 16px rgba(100,80,50,0.10);
+  --shadow-clay: 0 8px 0 rgba(100,80,50,0.10), 0 12px 32px rgba(100,80,50,0.12);
+  --shadow-inset: inset 0 2px 8px rgba(100,80,50,0.08);
+
+  --r-sm: 14px;
+  --r:    20px;
+  --r-lg: 28px;
+  --r-xl: 36px;
+
+  --font-display: 'Fraunces', serif;
+  --font-body:    'Plus Jakarta Sans', sans-serif;
+
+  /* API config — altere para seu Railway URL em produção */
+  --api-url: 'http://localhost:3001';
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.55;
+  /* Textura sutil */
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(200,216,192,0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(188,212,232,0.20) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 40%, rgba(242,196,188,0.12) 0%, transparent 40%);
+}
+
+/* ════════════════════════════════
+   CLAY COMPONENTS
+════════════════════════════════ */
+
+.clay {
+  background: white;
+  border-radius: var(--r);
+  box-shadow: var(--shadow-clay);
+  border: 1.5px solid rgba(255,255,255,0.9);
+  position: relative;
+  overflow: hidden;
+}
+.clay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.clay > * { position: relative; z-index: 1; }
+
+.clay-sm { border-radius: var(--r-sm); box-shadow: var(--shadow-sm); border: 1.5px solid rgba(255,255,255,0.85); background: white; position: relative; overflow: hidden; }
+.clay-sm::before { content:''; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(135deg,rgba(255,255,255,0.5) 0%,transparent 60%); pointer-events:none; z-index:0; }
+.clay-sm > * { position:relative; z-index:1; }
+
+/* Pill coloridos para status/tags */
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 40px;
+  font-size: 11.5px; font-weight: 500;
+  border: 1.5px solid transparent;
+}
+.pill-sage   { background: #e8f4e4; color: #3a6b30; border-color: #c0d8b8; }
+.pill-rose   { background: #fce8e6; color: #8b3028; border-color: #f0bab4; }
+.pill-sky    { background: #e0eef8; color: #1a4f72; border-color: #a8cceb; }
+.pill-amber  { background: #fdf2d4; color: #7a5000; border-color: #e8cc80; }
+.pill-lavender{ background: #ede8f8; color: #4a2f82; border-color: #c8b8e8; }
+.pill-sand   { background: #f4ece0; color: #6a4a28; border-color: #ddc8a8; }
+
+/* Botões clay */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 10px 22px; border-radius: var(--r-sm);
+  font-family: var(--font-body); font-size: 13.5px; font-weight: 500;
+  cursor: pointer; border: none; transition: all 0.18s; letter-spacing: 0.01em;
+  position: relative; overflow: hidden;
+}
+.btn::after { content:''; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(135deg,rgba(255,255,255,0.35) 0%,transparent 60%); pointer-events:none; }
+
+.btn-primary {
+  background: var(--sage3);
+  color: white;
+  box-shadow: 0 4px 0 #5a8850, var(--shadow-md);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 0 #5a8850, var(--shadow-lg); }
+.btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 0 #5a8850, var(--shadow-sm); }
+
+.btn-ghost {
+  background: rgba(255,255,255,0.7);
+  color: var(--ink2);
+  box-shadow: var(--shadow-sm);
+  border: 1.5px solid var(--sand);
+}
+.btn-ghost:hover { background: white; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+.btn-rose {
+  background: var(--rose2);
+  color: white;
+  box-shadow: 0 4px 0 #c07070, var(--shadow-sm);
+}
+.btn-rose:hover { transform: translateY(-1px); }
+
+.btn-sky {
+  background: var(--sky2);
+  color: white;
+  box-shadow: 0 4px 0 #5888b8, var(--shadow-sm);
+}
+.btn-sky:hover { transform: translateY(-1px); }
+
+.btn-amber {
+  background: var(--amber2);
+  color: var(--ink);
+  box-shadow: 0 4px 0 #b89040, var(--shadow-sm);
+}
+.btn-amber:hover { transform: translateY(-1px); }
+
+.btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 10px; }
+
+/* Inputs */
+.input, .select, .textarea {
+  width: 100%;
+  background: var(--cream);
+  border: 2px solid var(--sand);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  padding: 10px 14px;
+  transition: all 0.18s;
+  outline: none;
+  box-shadow: var(--shadow-inset);
+}
+.input:focus, .select:focus, .textarea:focus {
+  border-color: var(--sage2);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(168,192,154,0.20), var(--shadow-inset);
+}
+.textarea { resize: vertical; min-height: 90px; line-height: 1.65; }
+.select option { background: white; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { margin-bottom: 13px; }
+.form-label {
+  display: block; font-size: 11.5px; font-weight: 500;
+  color: var(--ink3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px;
+}
+
+/* ════════════════════════════════
+   LAYOUT
+════════════════════════════════ */
+
+.app { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 230px; min-width: 230px;
+  background: linear-gradient(180deg, #e8f0e4 0%, #dde8d8 100%);
+  border-right: 2px solid rgba(255,255,255,0.7);
+  box-shadow: 4px 0 24px rgba(100,140,80,0.08);
+  display: flex; flex-direction: column;
+  height: 100vh; position: sticky; top: 0; overflow-y: auto;
+  z-index: 10;
+}
+
+.sidebar-logo {
+  padding: 26px 22px 20px;
+  border-bottom: 2px solid rgba(255,255,255,0.5);
+}
+.logo-mark {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.logo-mark em { color: var(--sage3); font-style: italic; }
+.logo-sub {
+  font-size: 10.5px; color: var(--ink3); letter-spacing: 0.12em;
+  text-transform: uppercase; margin-top: 3px;
+}
+
+.nav { padding: 14px 12px; flex: 1; }
+.nav-section {
+  font-size: 10px; color: var(--ink4); text-transform: uppercase;
+  letter-spacing: 0.12em; padding: 10px 10px 5px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--r-sm);
+  cursor: pointer; color: var(--ink2); font-size: 13.5px; font-weight: 400;
+  transition: all 0.16s; margin-bottom: 2px; user-select: none;
+}
+.nav-item:hover {
+  background: rgba(255,255,255,0.55);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+.nav-item.active {
+  background: white;
+  color: var(--sage3);
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  border: 1.5px solid rgba(255,255,255,0.9);
+}
+.nav-item.active .nav-icon { opacity: 1; }
+.nav-icon { width: 16px; height: 16px; opacity: 0.6; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto; background: var(--amber); color: var(--ink);
+  font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px;
+  box-shadow: 0 2px 0 rgba(100,80,50,0.15);
+}
+
+.sidebar-footer {
+  padding: 14px 12px;
+  border-top: 2px solid rgba(255,255,255,0.5);
+}
+.user-chip {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--r-sm); cursor: pointer;
+  transition: all 0.15s;
+}
+.user-chip:hover { background: rgba(255,255,255,0.55); }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11.5px; font-weight: 600; flex-shrink: 0;
+  box-shadow: 0 3px 0 rgba(100,80,50,0.12), var(--shadow-sm);
+  border: 2px solid rgba(255,255,255,0.8);
+}
+.avatar-sage { background: linear-gradient(135deg, var(--sage), var(--sage2)); color: #2a5a22; }
+.avatar-sky  { background: linear-gradient(135deg, var(--sky), var(--sky2));  color: #0a3a58; }
+.user-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+.user-role { font-size: 11px; color: var(--ink3); }
+
+/* Main */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  padding: 16px 28px;
+  background: rgba(253,246,238,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid rgba(255,255,255,0.6);
+  box-shadow: 0 2px 12px rgba(100,80,50,0.06);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 9;
+}
+.topbar-title { font-family: var(--font-display); font-size: 22px; font-weight: 500; letter-spacing: -0.02em; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+.content { padding: 24px 28px; flex: 1; }
+
+/* Grids */
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+
+/* Stat cards */
+.stat-card { padding: 20px 22px; }
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 34px; line-height: 1; margin-bottom: 5px;
+  letter-spacing: -0.02em;
+}
+.stat-label { font-size: 12px; color: var(--ink3); }
+.stat-delta { font-size: 11.5px; margin-top: 6px; font-weight: 500; }
+.delta-up { color: var(--sage3); }
+.delta-neutral { color: var(--ink4); }
+
+/* Tabela */
+table { width: 100%; border-collapse: separate; border-spacing: 0; }
+thead th {
+  text-align: left; font-size: 11px; color: var(--ink3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0 14px 12px; font-weight: 500;
+  border-bottom: 2px solid var(--sand);
+}
+tbody tr { cursor: pointer; transition: background 0.12s; }
+tbody tr:hover td { background: rgba(200,216,192,0.18); }
+tbody tr:not(:last-child) td { border-bottom: 1px solid var(--cream3); }
+td { padding: 11px 14px; font-size: 13.5px; }
+td.muted { color: var(--ink3); }
+
+.patient-cell { display: flex; align-items: center; gap: 10px; }
+.p-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10.5px; font-weight: 600; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: 0 2px 0 rgba(100,80,50,0.10);
+}
+
+/* Agenda slots */
+.slot {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; border-radius: var(--r-sm);
+  cursor: pointer; transition: all 0.14s; margin-bottom: 5px;
+}
+.slot:hover { background: rgba(255,255,255,0.6); box-shadow: var(--shadow-sm); }
+.slot-time { width: 44px; font-size: 12px; color: var(--ink3); text-align: right; flex-shrink: 0; }
+.slot-bar { width: 4px; height: 38px; border-radius: 3px; flex-shrink: 0; }
+.slot-info .name { font-size: 13.5px; font-weight: 500; }
+.slot-info .detail { font-size: 11.5px; color: var(--ink3); margin-top: 1px; }
+
+/* Financeiro rows */
+.fin-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid var(--cream3); font-size: 13px;
+}
+.fin-row:last-child { border-bottom: none; }
+.fin-row .label { color: var(--ink3); }
+.fin-amount { font-family: var(--font-display); font-size: 15px; letter-spacing: -0.01em; }
+.fin-in  { color: var(--sage3); }
+.fin-out { color: var(--rose2); }
+.fin-pend{ color: #b87820; }
+
+/* Divider */
+.divider { height: 1px; background: var(--cream3); margin: 14px 0; }
+
+/* Seção prontuário */
+.pront-section { margin-bottom: 16px; }
+.pront-label {
+  font-size: 10.5px; color: var(--ink3); text-transform: uppercase;
+  letter-spacing: 0.09em; margin-bottom: 7px;
+  display: flex; align-items: center; gap: 8px;
+}
+.pront-label::after { content:''; flex:1; height:1px; background:var(--cream3); }
+.pront-block {
+  background: var(--cream);
+  border: 2px solid var(--sand);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-size: 13.5px; line-height: 1.75; color: var(--ink);
+  white-space: pre-line; box-shadow: var(--shadow-inset);
+}
+.pront-block[contenteditable="true"] { outline: none; cursor: text; }
+.pront-block[contenteditable="true"]:focus { border-color: var(--sage2); background: white; }
+
+/* Upload / record zone */
+.zone {
+  border: 2.5px dashed var(--sand);
+  border-radius: var(--r);
+  padding: 30px; text-align: center; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 12px;
+}
+.zone:hover { border-color: var(--sage2); background: rgba(200,216,192,0.10); }
+.zone.active-rec { border-color: var(--rose2); background: rgba(242,196,188,0.08); }
+
+/* Recording button */
+.rec-btn {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: white; border: 2.5px solid var(--sand);
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.2s; margin-bottom: 12px;
+  box-shadow: 0 4px 0 rgba(100,80,50,0.10), var(--shadow-md);
+}
+.rec-btn:hover { border-color: var(--rose2); box-shadow: 0 4px 0 rgba(180,80,70,0.15), var(--shadow-md); }
+.rec-btn.on { border-color: var(--rose2); background: #fce8e6; animation: recPulse 1.5s ease-in-out infinite; }
+@keyframes recPulse { 0%,100%{box-shadow:0 4px 0 rgba(180,80,70,0.15),0 0 0 0 rgba(232,160,152,0.4)} 50%{box-shadow:0 4px 0 rgba(180,80,70,0.15),0 0 0 12px rgba(232,160,152,0)} }
+
+/* AI progress */
+.ai-bar {
+  background: linear-gradient(135deg, #f0f8ec, #e8f4ff);
+  border: 2px solid rgba(168,192,154,0.4);
+  border-radius: var(--r);
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 13px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.ai-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--sage3); animation: pulse 1.3s ease-in-out infinite; flex-shrink: 0;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.65)} }
+.ai-step { font-size: 13px; color: var(--ink); font-weight: 500; }
+.prog-track { height: 4px; background: var(--cream3); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--sage2), var(--sky2)); border-radius: 3px; transition: width 0.4s ease; }
+
+/* Mode tabs */
+.mode-tabs { display: flex; gap: 5px; margin-bottom: 16px; }
+.mode-tab {
+  flex:1; padding: 9px; text-align: center; border-radius: var(--r-sm);
+  cursor: pointer; font-size: 13px; color: var(--ink3);
+  background: var(--cream2); border: 2px solid var(--sand);
+  transition: all 0.16s; font-weight: 400;
+}
+.mode-tab:hover { background: white; color: var(--ink2); }
+.mode-tab.active {
+  background: white; color: var(--sage3); font-weight: 500;
+  border-color: var(--sage2);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Steps */
+.steps { display: flex; gap: 0; margin-bottom: 24px; }
+.step {
+  flex:1; padding: 10px 14px; font-size: 12px; color: var(--ink4);
+  border-bottom: 3px solid var(--sand); transition: all 0.2s;
+}
+.step.done { color: var(--sage3); border-color: var(--sage3); }
+.step.active { color: var(--ink2); border-color: var(--sage2); font-weight: 500; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: white; border: 2px solid var(--sand);
+  border-radius: var(--r); padding: 13px 20px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: var(--shadow-lg); z-index: 300;
+  animation: slideUp 0.22s ease;
+  font-size: 13.5px; font-weight: 500; color: var(--ink);
+}
+@keyframes slideUp { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+/* Modal */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(45,40,32,0.35);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; padding: 20px;
+  animation: fadeIn 0.16s ease;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.modal {
+  background: var(--cream);
+  border: 2px solid rgba(255,255,255,0.9);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
+  animation: popIn 0.22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from{transform:scale(.94);opacity:0} to{transform:scale(1);opacity:1} }
+.modal-header {
+  padding: 22px 26px 16px;
+  border-bottom: 2px solid var(--cream3);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; background: var(--cream); z-index: 1;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+.modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 500; }
+.modal-body { padding: 20px 26px; }
+.modal-footer {
+  padding: 16px 26px;
+  border-top: 2px solid var(--cream3);
+  display: flex; gap: 8px; justify-content: flex-end;
+  position: sticky; bottom: 0; background: var(--cream);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
+.close-btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--cream2); border: 2px solid var(--sand);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--ink2); font-size: 15px; transition: all 0.14s;
+  box-shadow: var(--shadow-sm);
+}
+.close-btn:hover { background: var(--rose); border-color: var(--rose2); }
+
+/* Error box */
+.error-box {
+  background: #fce8e6; border: 2px solid var(--rose2);
+  border-radius: var(--r-sm); padding: 12px 14px;
+  font-size: 13px; color: #7a2820; margin-bottom: 12px;
+}
+
+/* Live text */
+.live-text {
+  min-height: 100px; background: var(--cream);
+  border: 2px solid var(--sand); border-radius: var(--r-sm);
+  padding: 12px 14px; font-size: 13.5px; line-height: 1.75;
+  white-space: pre-wrap; box-shadow: var(--shadow-inset);
+}
+.live-text .interim { color: var(--ink4); font-style: italic; }
+
+/* Espera item */
+.espera-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 12px; border-radius: var(--r-sm);
+  cursor: pointer; transition: all 0.12s; margin-bottom: 4px;
+}
+.espera-item:hover { background: rgba(255,255,255,0.6); box-shadow: var(--shadow-sm); }
+.espera-pos {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--cream2); color: var(--ink3); font-size: 10.5px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border: 1.5px solid var(--sand);
+}
+.espera-meta { font-size: 11.5px; color: var(--ink3); margin-top: 1px; }
+
+/* Pages */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.18s ease; }
+</style>
+</head>
+<body>
+
+<!-- ════════════ LOGIN ════════════ -->
+<div id="screen-login" style="
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+  background-image: radial-gradient(ellipse at 25% 15%, rgba(200,216,192,0.35) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 85%, rgba(188,212,232,0.28) 0%, transparent 55%),
+    radial-gradient(ellipse at 60% 40%, rgba(242,196,188,0.15) 0%, transparent 40%);
+">
+  <div style="width:100%;max-width:400px">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-family:var(--font-display);font-size:40px;letter-spacing:-0.03em;line-height:1">
+        Aka<em style="color:var(--sage3);font-style:italic">iros</em>
+      </div>
+      <div style="font-size:11.5px;color:var(--ink3);letter-spacing:0.13em;text-transform:uppercase;margin-top:6px">Sistema Clínico</div>
+    </div>
+
+    <!-- Card login -->
+    <div class="clay" style="padding:30px 28px">
+      <div style="font-family:var(--font-display);font-size:18px;margin-bottom:4px">Bem-vinda de volta</div>
+      <div style="font-size:13px;color:var(--ink3);margin-bottom:22px">Acesse com suas credenciais</div>
+
+      <div id="login-erro" class="error-box" style="display:none"></div>
+
+      <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <input class="input" type="email" id="login-email" placeholder="seu@email.com" value="carol@clinica.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Senha</label>
+        <input class="input" type="password" id="login-senha" placeholder="••••••••" value="senha123">
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:6px;padding:12px" onclick="fazerLogin()">
+        Entrar no sistema
+      </button>
+
+      <div style="margin-top:16px;font-size:12px;color:var(--ink3);text-align:center">
+        Demo: carol@clinica.com · senha123
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:16px;font-size:11.5px;color:var(--ink4)">
+      Akairos © 2025 · Sistema seguro e criptografado
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ APP ════════════ -->
+<div id="screen-app" class="app" style="display:none">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">Aka<em>iros</em></div>
+      <div class="logo-sub">Sistema Clínico</div>
+    </div>
+    <div class="nav">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" onclick="nav('dashboard')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="nav('pacientes')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+        Pacientes
+      </div>
+      <div class="nav-item" onclick="nav('sessao')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="7"/><path d="M8 5v3l2 2"/></svg>
+        Nova sessão
+      </div>
+      <div class="nav-item" onclick="nav('agenda')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="12" rx="2"/><path d="M5 1v4M11 1v4M1 8h14"/></svg>
+        Agenda
+      </div>
+      <div class="nav-section">Gestão</div>
+      <div class="nav-item" onclick="nav('financeiro')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v14M11 4H6.5a2.5 2.5 0 0 0 0 5h3a2.5 2.5 0 0 1 0 5H4"/></svg>
+        Financeiro
+      </div>
+      <div class="nav-item" onclick="nav('espera')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="7"/><path d="M8 5v3l2 2"/></svg>
+        Lista de espera
+        <span class="nav-badge">312</span>
+      </div>
+      <div class="nav-item" onclick="nav('equipe')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="5" r="2.5"/><path d="M1 13c0-2.2 1.8-4 4-4s4 1.8 4 4"/><circle cx="12" cy="5" r="2.5"/><path d="M10 13c0-2.2 1.8-4 4-4"/></svg>
+        Equipe
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-chip" onclick="logout()">
+        <div class="avatar avatar-sage" id="sb-avatar">CM</div>
+        <div>
+          <div class="user-name" id="sb-nome">Dra. Carol</div>
+          <div class="user-role">Psicóloga · Sair</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div id="page-dashboard" class="page active">
+      <div class="topbar">
+        <div class="topbar-title">Visão geral</div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="nav('sessao')">+ Nova sessão</button>
+          <button class="btn btn-primary btn-sm" onclick="abrirAgendar()">Agendar</button>
+        </div>
+      </div>
+      <div class="content">
+
+        <!-- Stats -->
+        <div class="grid-4">
+          <div class="clay stat-card">
+            <div class="stat-label">Pacientes ativos</div>
+            <div class="stat-value" style="color:var(--sage3)" id="st-pacientes">25</div>
+            <div class="stat-delta delta-up">↑ 3 este mês</div>
+          </div>
+          <div class="clay stat-card">
+            <div class="stat-label">Sessões esta semana</div>
+            <div class="stat-value" style="color:var(--sky2)" id="st-sessoes">12</div>
+            <div class="stat-delta delta-neutral">4 restantes</div>
+          </div>
+          <div class="clay stat-card">
+            <div class="stat-label">Lista de espera</div>
+            <div class="stat-value" style="color:#b87820" id="st-espera">312</div>
+            <div class="stat-delta delta-up">↑ 28 este mês</div>
+          </div>
+          <div class="clay stat-card">
+            <div class="stat-label">Receita no mês</div>
+            <div class="stat-value" style="color:var(--lavender2)" id="st-receita">R$6.200</div>
+            <div class="stat-delta delta-up">↑ R$800 vs anterior</div>
+          </div>
+        </div>
+
+        <div class="grid-3-1" style="margin-bottom:16px">
+          <!-- Pacientes recentes -->
+          <div class="clay" style="padding:20px 20px 10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em">Pacientes recentes</div>
+              <button class="btn btn-ghost btn-sm" onclick="nav('pacientes')">Ver todos</button>
+            </div>
+            <table>
+              <thead><tr>
+                <th>Paciente</th><th>Próxima sessão</th><th>Sessões</th><th>Status</th>
+              </tr></thead>
+              <tbody id="tb-recentes"></tbody>
+            </table>
+          </div>
+          <!-- Hoje -->
+          <div class="clay" style="padding:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em">Hoje</div>
+              <span class="pill pill-sky" id="hoje-data" style="font-size:10.5px"></span>
+            </div>
+            <div id="agenda-hoje"></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Financeiro -->
+          <div class="clay" style="padding:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em">Financeiro · Abril</div>
+              <button class="btn btn-ghost btn-sm" onclick="nav('financeiro')">Detalhes</button>
+            </div>
+            <div class="fin-row"><span class="label">Receita total</span><span class="fin-amount fin-in">R$ 6.200</span></div>
+            <div class="fin-row"><span class="label">Sessões realizadas</span><span class="fin-amount">31</span></div>
+            <div class="fin-row"><span class="label">Cancelamentos</span><span class="fin-amount fin-out">3</span></div>
+            <div class="fin-row"><span class="label">Média por paciente</span><span class="fin-amount">R$ 200</span></div>
+            <div class="fin-row"><span class="label">A receber</span><span class="fin-amount fin-pend">R$ 800</span></div>
+          </div>
+          <!-- Evoluções -->
+          <div class="clay" style="padding:20px">
+            <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px">Evoluções recentes</div>
+            <div id="evolucoes-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PACIENTES ── -->
+    <div id="page-pacientes" class="page">
+      <div class="topbar">
+        <div class="topbar-title">Pacientes</div>
+        <div class="topbar-actions">
+          <input class="input" style="width:210px;padding:7px 12px" placeholder="Buscar..." oninput="filtrarPacientes(this.value)">
+          <button class="btn btn-primary btn-sm" onclick="abrirNovoPaciente()">+ Novo paciente</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="clay" style="padding:0;overflow:hidden">
+          <table>
+            <thead><tr>
+              <th style="padding:16px 16px 12px">Paciente</th>
+              <th>Abordagem</th><th>Psicóloga</th><th>Próxima sessão</th><th>Sessões</th><th>Status</th>
+            </tr></thead>
+            <tbody id="tb-pacientes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NOVA SESSÃO ── -->
+    <div id="page-sessao" class="page">
+      <div class="topbar"><div class="topbar-title">Nova sessão</div></div>
+      <div class="content" style="max-width:700px">
+
+        <div class="steps">
+          <div class="step active" id="step-1"><span style="font-weight:600">1</span> Dados</div>
+          <div class="step" id="step-2"><span style="font-weight:600">2</span> Transcrição</div>
+          <div class="step" id="step-3"><span style="font-weight:600">3</span> Evolução IA</div>
+          <div class="step" id="step-4"><span style="font-weight:600">4</span> Salvo</div>
+        </div>
+
+        <!-- Etapa 1: Dados -->
+        <div id="etapa-dados">
+          <div class="clay" style="padding:22px;margin-bottom:14px">
+            <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px">Dados da sessão</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Paciente</label>
+                <select class="select" id="sess-paciente"><option value="">Selecionar...</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Data</label>
+                <input type="date" class="input" id="sess-data">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Abordagem</label>
+                <select class="select" id="sess-abordagem">
+                  <option value="TCC">TCC</option><option value="ACT">ACT</option>
+                  <option value="DBT">DBT</option><option value="TCC+ACT">TCC + ACT</option>
+                  <option value="Psicanálise">Psicanálise</option><option value="Humanista">Humanista</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nº / tipo da sessão</label>
+                <input type="text" class="input" id="sess-num" placeholder="Ex: 8ª sessão">
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="irEtapa2()">Avançar →</button>
+        </div>
+
+        <!-- Etapa 2: Transcrição -->
+        <div id="etapa-transcricao" style="display:none">
+          <div class="clay" style="padding:22px;margin-bottom:14px">
+            <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px">Modo de entrada</div>
+            <div class="mode-tabs">
+              <div class="mode-tab active" id="tab-ao-vivo" onclick="setModo('ao-vivo')">🎙 Gravar ao vivo</div>
+              <div class="mode-tab" id="tab-upload" onclick="setModo('upload')">📎 Upload / texto</div>
+            </div>
+
+            <!-- AO VIVO -->
+            <div id="modo-ao-vivo">
+              <div class="zone" id="rec-zone">
+                <button class="rec-btn" id="rec-btn" onclick="toggleRec()">
+                  <svg id="rec-mic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3M8 22h8"/></svg>
+                  <svg id="rec-stop" width="24" height="24" viewBox="0 0 24 24" fill="var(--rose2)" style="display:none"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                </button>
+                <div class="form-label" id="rec-label" style="margin:0">Clique para gravar a sessão</div>
+                <div style="font-family:monospace;font-size:22px;color:var(--rose2);margin-top:6px;display:none" id="rec-time">00:00</div>
+              </div>
+              <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between">
+                Transcrição ao vivo
+                <button class="btn btn-ghost btn-sm" onclick="limparRec()">Limpar</button>
+              </div>
+              <div class="live-text" id="live-text">A transcrição aparece aqui em tempo real...</div>
+              <div style="font-size:11px;color:var(--ink4);margin-top:6px">Processado localmente pelo Chrome/Edge · nenhum áudio é enviado para servidores</div>
+            </div>
+
+            <!-- UPLOAD / TEXTO -->
+            <div id="modo-upload" style="display:none">
+              <div class="form-group">
+                <label class="form-label">Transcrição ou anotações da sessão</label>
+                <textarea class="textarea" id="upload-texto" style="min-height:180px"
+                  placeholder="Cole aqui a transcrição gerada por outro app (Otter.ai, Google Meet etc.), ou escreva livremente suas anotações da sessão.
+
+A IA transforma qualquer formato em prontuário estruturado."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div id="erro-trans" class="error-box" style="display:none"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" onclick="voltarEtapa1()">← Voltar</button>
+            <button class="btn btn-primary" onclick="irEtapa3()">Gerar evolução com IA →</button>
+          </div>
+        </div>
+
+        <!-- Etapa 3: Evolução -->
+        <div id="etapa-evolucao" style="display:none">
+          <div id="evol-loading" class="ai-bar">
+            <div class="ai-dot"></div>
+            <div style="flex:1">
+              <div class="ai-step" id="evol-step">Analisando conteúdo clínico...</div>
+              <div class="prog-track"><div class="prog-fill" id="evol-prog" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div id="evol-conteudo" style="display:none">
+            <div class="clay" style="padding:22px;margin-bottom:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em">Evolução gerada</div>
+                <span class="pill pill-lavender">✦ IA · clique nos campos para editar</span>
+              </div>
+              <div class="pront-section"><div class="pront-label">Resumo da sessão</div><div class="pront-block" id="p-resumo" contenteditable="true"></div></div>
+              <div class="pront-section"><div class="pront-label">Conteúdo trazido pelo paciente</div><div class="pront-block" id="p-conteudo" contenteditable="true"></div></div>
+              <div class="pront-section"><div class="pront-label">Intervenções realizadas</div><div class="pront-block" id="p-intervencoes" contenteditable="true"></div></div>
+              <div class="pront-section"><div class="pront-label">Evolução clínica observada</div><div class="pront-block" id="p-evolucao" contenteditable="true"></div></div>
+              <div class="pront-section"><div class="pront-label">Plano terapêutico</div><div class="pront-block" id="p-plano" contenteditable="true"></div></div>
+              <div class="pront-section">
+                <div class="pront-label">Observações adicionais</div>
+                <textarea class="textarea" id="p-obs" placeholder="Adicione observações complementares..."></textarea>
+              </div>
+            </div>
+            <div id="erro-evol" class="error-box" style="display:none"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-primary" onclick="salvarSessao()">✓ Salvar prontuário</button>
+              <button class="btn btn-ghost" onclick="regenerar()">↺ Regerar</button>
+              <button class="btn btn-ghost" onclick="copiarProntuario()">Copiar</button>
+              <button class="btn btn-ghost" onclick="voltarEtapa2()">← Voltar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Etapa 4: Salvo -->
+        <div id="etapa-salvo" style="display:none">
+          <div class="clay" style="padding:40px 28px;text-align:center;margin-bottom:14px">
+            <div style="font-size:44px;margin-bottom:12px">🌿</div>
+            <div style="font-family:var(--font-display);font-size:24px;margin-bottom:8px">Prontuário salvo</div>
+            <div style="color:var(--ink3);font-size:13.5px;margin-bottom:24px" id="salvo-info"></div>
+            <div style="display:flex;gap:8px;justify-content:center">
+              <button class="btn btn-primary" onclick="novaSessao()">Nova sessão</button>
+              <button class="btn btn-ghost" onclick="nav('pacientes')">Ver pacientes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AGENDA ── -->
+    <div id="page-agenda" class="page">
+      <div class="topbar">
+        <div class="topbar-title">Agenda</div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm">← Anterior</button>
+          <button class="btn btn-ghost btn-sm">Atual</button>
+          <button class="btn btn-ghost btn-sm">Próxima →</button>
+          <button class="btn btn-primary btn-sm" onclick="abrirAgendar()">+ Agendar</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="clay" style="padding:0;overflow:hidden">
+          <div id="agenda-semana"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FINANCEIRO ── -->
+    <div id="page-financeiro" class="page">
+      <div class="topbar">
+        <div class="topbar-title">Financeiro</div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm">Exportar</button>
+          <button class="btn btn-primary btn-sm">+ Lançamento</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="grid-4" style="margin-bottom:18px">
+          <div class="clay stat-card"><div class="stat-label">Receita · Abril</div><div class="stat-value fin-in">R$6.200</div></div>
+          <div class="clay stat-card"><div class="stat-label">A receber</div><div class="stat-value fin-pend">R$800</div></div>
+          <div class="clay stat-card"><div class="stat-label">Sessões pagas</div><div class="stat-value">31</div></div>
+          <div class="clay stat-card"><div class="stat-label">Ticket médio</div><div class="stat-value" style="color:var(--lavender2)">R$200</div></div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px">Lançamentos · Abril 2025</div>
+          <table>
+            <thead><tr><th>Data</th><th>Paciente</th><th>Psicóloga</th><th>Tipo</th><th>Valor</th><th>Status</th></tr></thead>
+            <tbody id="tb-financeiro"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ESPERA ── -->
+    <div id="page-espera" class="page">
+      <div class="topbar">
+        <div class="topbar-title">Lista de espera</div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm">Exportar</button>
+          <button class="btn btn-primary btn-sm">+ Adicionar</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="grid-2">
+          <div class="clay" style="padding:20px">
+            <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px">Fila (312)</div>
+            <div id="lista-espera"></div>
+          </div>
+          <div class="clay" style="padding:20px">
+            <div style="font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px">Estatísticas</div>
+            <div class="fin-row"><span class="label">Total na fila</span><span style="font-weight:500">312</span></div>
+            <div class="fin-row"><span class="label">Aguardando +60 dias</span><span style="color:#b87820">187</span></div>
+            <div class="fin-row"><span class="label">Captação Instagram</span><span>78%</span></div>
+            <div class="fin-row"><span class="label">Convertidos este mês</span><span style="color:var(--sage3)">3</span></div>
+            <div class="divider"></div>
+            <div style="font-size:12px;color:var(--ink3)">Absorção estimada: <strong style="color:var(--ink)">2–3 / mês</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EQUIPE ── -->
+    <div id="page-equipe" class="page">
+      <div class="topbar">
+        <div class="topbar-title">Equipe</div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm">+ Psicóloga</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="grid-2" id="equipe-cards"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── MODAL AGENDAR ── -->
+<div class="overlay" id="modal-agendar" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Agendar consulta</div>
+      <button class="close-btn" onclick="fecharModal('modal-agendar')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Paciente</label><select class="select" id="ag-pac"><option>Selecionar...</option></select></div>
+        <div class="form-group"><label class="form-label">Psicóloga</label><select class="select"><option>Dra. Carol</option><option>Dra. Ana</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Data</label><input type="date" class="input"></div>
+        <div class="form-group"><label class="form-label">Horário</label><select class="select"><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Tipo</label><select class="select"><option>Regular</option><option>Primeira consulta</option><option>Retorno</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-agendar')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarAgendamento()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL PACIENTE ── -->
+<div class="overlay" id="modal-paciente" style="display:none">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title" id="mp-nome"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="pill pill-sage" id="mp-status">Ativo</span>
+        <button class="close-btn" onclick="fecharModal('modal-paciente')">×</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row" style="margin-bottom:16px">
+        <div><div class="form-label">Abordagem</div><div id="mp-abordagem" style="color:var(--ink2)"></div></div>
+        <div><div class="form-label">Psicóloga</div><div id="mp-psi" style="color:var(--ink2)"></div></div>
+      </div>
+      <div class="divider"></div>
+      <div id="mp-prontuario"></div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="nav('sessao');fecharModal('modal-paciente')">Nova sessão</button>
+        <button class="btn btn-ghost" onclick="fecharModal('modal-paciente')">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none">
+  <span id="toast-icon">✓</span>
+  <span id="toast-msg">Salvo</span>
+</div>
+
+<script>
+// ── CONFIG ──
+// Em produção, troque pela URL do seu Railway:
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:3001'
+  : 'https://SEU-APP.up.railway.app'; // ← substitua após fazer deploy
+
+let TOKEN = localStorage.getItem('akairos_token') || '';
+let USER = JSON.parse(localStorage.getItem('akairos_user') || 'null');
+
+// ── DADOS MOCK (usado quando API não está disponível) ──
+const MOCK = {
+  pacientes: [
+    {id:'1', nome:'Ana Beatriz S.', abordagem:'TCC', psi:'Dra. Carol', proxima:'Qua 14:00', totalSessoes:18, ativo:true, avatar:'AB', cor:'#a8c09a'},
+    {id:'2', nome:'Carlos M.', abordagem:'ACT', psi:'Dra. Carol', proxima:'Qui 10:00', totalSessoes:7, ativo:true, avatar:'CM', cor:'#8ab8d8'},
+    {id:'3', nome:'Fernanda L.', abordagem:'TCC', psi:'Dra. Ana', proxima:'Sex 15:00', totalSessoes:31, ativo:true, avatar:'FL', cor:'#b8a8d8'},
+    {id:'4', nome:'Rafael T.', abordagem:'DBT', psi:'Dra. Carol', proxima:'Seg 09:00', totalSessoes:12, ativo:true, avatar:'RT', cor:'#e8d5bb'},
+    {id:'5', nome:'Juliana P.', abordagem:'TCC', psi:'Dra. Ana', proxima:'Ter 16:00', totalSessoes:5, ativo:true, avatar:'JP', cor:'#f2c4bc'},
+  ],
+  agenda: [
+    {hora:'09:00', nome:'Marcos V.', tipo:'Sessão regular', cor:'#a8c09a'},
+    {hora:'10:30', nome:'Carlos M.', tipo:'Sessão regular', cor:'#8ab8d8'},
+    {hora:'14:00', nome:'Ana Beatriz S.', tipo:'Sessão regular', cor:'#a8c09a'},
+    {hora:'15:30', nome:'Rafael T.', tipo:'Avaliação', cor:'#e8d5bb'},
+  ],
+  financeiro: [
+    {data:'03/04', paciente:'Ana Beatriz S.', psi:'Dra. Carol', tipo:'Sessão', valor:200, status:'pago'},
+    {data:'02/04', paciente:'Carlos M.', psi:'Dra. Carol', tipo:'Sessão', valor:180, status:'pago'},
+    {data:'01/04', paciente:'Fernanda L.', psi:'Dra. Ana', tipo:'Sessão', valor:220, status:'pendente'},
+  ],
+  espera: [
+    {pos:1, nome:'Mariana Costa', meta:'Instagram · há 15 dias'},
+    {pos:2, nome:'Pedro Alves', meta:'Indicação · há 22 dias'},
+    {pos:3, nome:'Luciana Faria', meta:'Instagram · há 31 dias'},
+    {pos:4, nome:'Thiago Mendes', meta:'Instagram · há 45 dias'},
+    {pos:5, nome:'Sofia Ribeiro', meta:'Site · há 52 dias'},
+    {pos:'…', nome:'+ 307 pessoas na lista', meta:''},
+  ],
+};
+
+// ── HELPERS API ──
+async function api(path, opts = {}) {
+  try {
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opts.headers||{}) },
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    });
+    if (!r.ok) throw new Error('API error ' + r.status);
+    return r.json();
+  } catch {
+    return null; // fallback para mock
+  }
+}
+
+// ── LOGIN ──
+async function fazerLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  document.getElementById('login-erro').style.display = 'none';
+
+  // Tentar API real
+  const resp = await api('/auth/login', { method: 'POST', body: { email, senha } });
+
+  if (resp?.token) {
+    TOKEN = resp.token;
+    USER = resp['psicóloga'] || resp.psicóloga || { nome: 'Dra. Carol', email };
+    localStorage.setItem('akairos_token', TOKEN);
+    localStorage.setItem('akairos_user', JSON.stringify(USER));
+    entrarApp();
+  } else if (email === 'carol@clinica.com' && senha === 'senha123') {
+    // Demo sem backend
+    USER = { nome: 'Dra. Carol Martins', email };
+    TOKEN = 'demo';
+    localStorage.setItem('akairos_user', JSON.stringify(USER));
+    entrarApp();
+  } else {
+    document.getElementById('login-erro').style.display = 'block';
+    document.getElementById('login-erro').textContent = 'E-mail ou senha incorretos.';
+  }
+}
+document.getElementById('login-senha').addEventListener('keydown', e => { if(e.key==='Enter') fazerLogin(); });
+
+function entrarApp() {
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-app').style.display = 'flex';
+  const iniciais = USER?.nome?.split(' ').slice(0,2).map(n=>n[0]).join('') || 'CA';
+  document.getElementById('sb-avatar').textContent = iniciais;
+  document.getElementById('sb-nome').textContent = USER?.nome?.split(' ')[1] ? 'Dra. ' + USER.nome.split(' ')[1] : USER?.nome;
+  renderDashboard();
+  // popular select de pacientes
+  const sel = document.getElementById('sess-paciente');
+  MOCK.pacientes.forEach(p => { const o = new Option(p.nome, p.id); sel.add(o); });
+  document.getElementById('sess-data').value = new Date().toISOString().slice(0,10);
+}
+
+function logout() {
+  localStorage.removeItem('akairos_token');
+  localStorage.removeItem('akairos_user');
+  TOKEN = ''; USER = null;
+  document.getElementById('screen-app').style.display = 'none';
+  document.getElementById('screen-login').style.display = 'flex';
+}
+
+// Auto login se tiver token
+if (TOKEN && USER) { entrarApp(); }
+
+// ── RENDER ──
+function renderDashboard() {
+  const tb = document.getElementById('tb-recentes');
+  tb.innerHTML = MOCK.pacientes.slice(0,5).map(p => `
+    <tr onclick="abrirPaciente('${p.id}')">
+      <td><div class="patient-cell">
+        <div class="p-avatar" style="background:${p.cor}44;color:${p.cor}cc">${p.avatar}</div>${p.nome}
+      </div></td>
+      <td class="muted">${p.proxima}</td>
+      <td class="muted">${p.totalSessoes}</td>
+      <td><span class="pill pill-sage">Ativo</span></td>
+    </tr>`).join('');
+
+  const d = new Date();
+  document.getElementById('hoje-data').textContent = d.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'});
+  document.getElementById('agenda-hoje').innerHTML = MOCK.agenda.map(s => `
+    <div class="slot"><span class="slot-time">${s.hora}</span>
+      <div class="slot-bar" style="background:${s.cor}"></div>
+      <div class="slot-info"><div class="name">${s.nome}</div><div class="detail">${s.tipo}</div></div>
+    </div>`).join('');
+
+  document.getElementById('evolucoes-list').innerHTML = [
+    {p:'Ana Beatriz S.',d:'03/04'},{p:'Carlos M.',d:'02/04'},{p:'Marcos V.',d:'01/04'}
+  ].map(e=>`<div class="fin-row"><span class="label">${e.p}</span>
+    <span style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:11px;color:var(--ink4)">${e.d}</span>
+      <span class="pill pill-lavender" style="font-size:10px">✦ IA</span>
+    </span></div>`).join('');
+}
+
+function renderPacientes(f='') {
+  document.getElementById('tb-pacientes').innerHTML = MOCK.pacientes
+    .filter(p => !f || p.nome.toLowerCase().includes(f.toLowerCase()))
+    .map(p => `<tr onclick="abrirPaciente('${p.id}')">
+      <td style="padding:12px 16px"><div class="patient-cell">
+        <div class="p-avatar" style="background:${p.cor}44;color:${p.cor}cc">${p.avatar}</div>${p.nome}
+      </div></td>
+      <td><span class="pill pill-sky">${p.abordagem}</span></td>
+      <td class="muted">${p.psi}</td><td class="muted">${p.proxima}</td>
+      <td class="muted">${p.totalSessoes}</td>
+      <td><span class="pill pill-sage">Ativo</span></td>
+    </tr>`).join('');
+}
+
+function renderFinanceiro() {
+  document.getElementById('tb-financeiro').innerHTML = MOCK.financeiro.map(f => `
+    <tr><td class="muted">${f.data}</td><td>${f.paciente}</td><td class="muted">${f.psi}</td>
+      <td class="muted">${f.tipo}</td>
+      <td style="font-family:var(--font-display)">R$ ${f.valor}</td>
+      <td><span class="pill ${f.status==='pago'?'pill-sage':'pill-amber'}">${f.status==='pago'?'Pago':'Pendente'}</span></td>
+    </tr>`).join('');
+}
+
+function renderEspera() {
+  document.getElementById('lista-espera').innerHTML = MOCK.espera.map(e => `
+    <div class="espera-item">
+      <div class="espera-pos">${e.pos}</div>
+      <div style="flex:1"><div style="font-size:13.5px;font-weight:500">${e.nome}</div>
+        ${e.meta?`<div class="espera-meta">${e.meta}</div>`:''}</div>
+      ${e.pos!=='…'?`<button class="btn btn-sm" style="background:var(--sage);color:#2a5a22;border:1.5px solid var(--sage2);font-size:11px;padding:4px 10px;border-radius:8px">Converter</button>`:''}
+    </div>`).join('');
+}
+
+function renderEquipe() {
+  const psis = [
+    {n:'Dra. Carol Martins',av:'CM',cor:'avatar-sage',abord:'TCC · ACT',pac:15,sess:8},
+    {n:'Dra. Ana Souza',av:'AS',cor:'avatar-sky',abord:'TCC · DBT',pac:10,sess:6},
+  ];
+  document.getElementById('equipe-cards').innerHTML = psis.map(p => `
+    <div class="clay" style="padding:22px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+        <div class="avatar ${p.cor}" style="width:44px;height:44px;font-size:14px">${p.av}</div>
+        <div><div style="font-family:var(--font-display);font-size:17px">${p.n}</div>
+          <div style="font-size:12px;color:var(--ink3)">${p.abord}</div></div>
+      </div>
+      <div class="fin-row"><span class="label">Pacientes ativos</span><span>${p.pac}</span></div>
+      <div class="fin-row"><span class="label">Sessões esta semana</span><span>${p.sess}</span></div>
+      <div class="fin-row"><span class="label">Status</span><span class="pill pill-sage">Ativa</span></div>
+    </div>`).join('');
+}
+
+function renderAgenda() {
+  const dias = ['Segunda','Terça','Quarta','Quinta','Sexta'];
+  const cores = ['#a8c09a','#8ab8d8','#b8a8d8','#e8d5bb','#f2c4bc'];
+  const slots = {'09:00-0':0,'10:00-1':1,'14:00-0':2,'15:00-1':3,'11:00-2':0,'09:00-2':2,'15:00-3':1,'16:00-4':3};
+  const horas = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+  let html = `<div style="display:grid;grid-template-columns:56px repeat(5,1fr);background:var(--cream2);border-bottom:2px solid var(--sand)">
+    <div></div>${dias.map(d=>`<div style="padding:12px;font-size:12px;color:var(--ink3);border-left:1px solid var(--sand);font-weight:500">${d}</div>`).join('')}
+  </div>`;
+  html += horas.map(h=>`<div style="display:grid;grid-template-columns:56px repeat(5,1fr)">
+    <div style="padding:9px 8px;font-size:11px;color:var(--ink4);text-align:right">${h}</div>
+    ${[0,1,2,3,4].map(d=>{
+      const k=`${h}-${d}`;const pi=slots[k];
+      if(pi!==undefined){const p=MOCK.pacientes[pi];return`<div style="border-left:1px solid var(--cream3);padding:2px">
+        <div style="background:${cores[pi]}33;border-left:3px solid ${cores[pi]};border-radius:0 8px 8px 0;padding:3px 8px;cursor:pointer;font-size:11px;margin:1px">${p.nome.split(' ')[0]}</div>
+      </div>`;}
+      return`<div style="border-left:1px solid var(--cream3);min-height:36px"></div>`;
+    }).join('')}
+  </div>`).join('');
+  document.getElementById('agenda-semana').innerHTML = html;
+}
+
+// ── NAVEGAÇÃO ──
+const pagesMap = {dashboard:0,pacientes:1,sessao:2,agenda:3,financeiro:4,espera:5,equipe:6};
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((n,i)=>n.classList.toggle('active',i===pagesMap[page]));
+  if(page==='pacientes') renderPacientes();
+  if(page==='financeiro') renderFinanceiro();
+  if(page==='espera') renderEspera();
+  if(page==='equipe') renderEquipe();
+  if(page==='agenda') renderAgenda();
+  if(page==='sessao') iniciarSessao();
+}
+function filtrarPacientes(v) { renderPacientes(v); }
+
+function iniciarSessao() {
+  ['etapa-dados','etapa-transcricao','etapa-evolucao','etapa-salvo'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('etapa-dados').style.display='block';
+  setStep(1);
+  setModo('ao-vivo');
+}
+
+// ── ETAPAS SESSÃO ──
+function setStep(n) {
+  [1,2,3,4].forEach(i=>{
+    const el=document.getElementById('step-'+i);
+    el.className='step'+(i<n?' done':i===n?' active':'');
+  });
+}
+function irEtapa2() {
+  if(!document.getElementById('sess-paciente').value){toast('Selecione um paciente','⚠️');return;}
+  document.getElementById('etapa-dados').style.display='none';
+  document.getElementById('etapa-transcricao').style.display='block';
+  setStep(2);
+}
+function voltarEtapa1(){document.getElementById('etapa-transcricao').style.display='none';document.getElementById('etapa-dados').style.display='block';setStep(1);}
+function voltarEtapa2(){document.getElementById('etapa-evolucao').style.display='none';document.getElementById('etapa-transcricao').style.display='block';setStep(2);}
+
+async function irEtapa3() {
+  const texto = getTexto();
+  if(!texto){document.getElementById('erro-trans').style.display='block';document.getElementById('erro-trans').textContent='Nenhum conteúdo encontrado. Grave ou escreva as anotações da sessão.';return;}
+  document.getElementById('erro-trans').style.display='none';
+  document.getElementById('etapa-transcricao').style.display='none';
+  document.getElementById('etapa-evolucao').style.display='block';
+  document.getElementById('evol-loading').style.display='flex';
+  document.getElementById('evol-conteudo').style.display='none';
+  setStep(3);
+  await gerarEvolucao(texto);
+}
+
+function getTexto() {
+  if(modoAtual==='ao-vivo') return document.getElementById('live-text').textContent.replace('A transcrição aparece aqui em tempo real...','').trim();
+  return document.getElementById('upload-texto').value.trim();
+}
+
+// ── IA: GERAR EVOLUÇÃO (chama backend) ──
+async function gerarEvolucao(texto) {
+  const progSteps=[
+    {l:'Analisando conteúdo clínico...',p:25},
+    {l:'Identificando padrões terapêuticos...',p:55},
+    {l:'Redigindo evolução de prontuário...',p:82},
+    {l:'Finalizando...',p:96},
+  ];
+  let pi=0;
+  const iv=setInterval(()=>{
+    if(pi<progSteps.length){
+      document.getElementById('evol-step').textContent=progSteps[pi].l;
+      document.getElementById('evol-prog').style.width=progSteps[pi].p+'%';
+      pi++;
+    }
+  },1100);
+
+  const resp = await api('/sessoes', {
+    method:'POST',
+    body: {
+      pacienteId: document.getElementById('sess-paciente').value,
+      data: document.getElementById('sess-data').value,
+      numSessao: document.getElementById('sess-num').value,
+      abordagem: document.getElementById('sess-abordagem').value,
+      transcricao: texto,
+    }
+  });
+
+  clearInterval(iv);
+  document.getElementById('evol-prog').style.width='100%';
+
+  setTimeout(()=>{
+    document.getElementById('evol-loading').style.display='none';
+    document.getElementById('evol-conteudo').style.display='block';
+
+    if(resp?.prontuario) {
+      // Dados reais do backend
+      preencherEvolucao({
+        resumo: resp.prontuario.resumo,
+        conteudo: resp.prontuario.conteudo,
+        intervencoes: resp.prontuario.intervencoes,
+        evolucao_clinica: resp.prontuario.evolucaoClinica,
+        plano: resp.prontuario.plano,
+      });
+    } else {
+      // Mock quando backend não está disponível
+      preencherEvolucao({
+        resumo: 'Sessão realizada com boa adesão do paciente. Foram abordados temas relacionados à semana transcorrida e ao progresso no trabalho terapêutico em andamento.',
+        conteudo: 'Paciente relata eventos da semana com elaboração progressiva. Demonstra maior capacidade reflexiva em relação a padrões cognitivos identificados nas sessões anteriores.',
+        intervencoes: 'Aplicadas técnicas de reestruturação cognitiva. Exploração de pensamentos automáticos e questionamento socrático. Revisão de tarefas de casa.',
+        evolucao_clinica: 'Paciente demonstra evolução clínica consistente. Melhora na identificação e manejo de pensamentos disfuncionais. Engajamento terapêutico adequado.',
+        plano: 'Dar continuidade ao trabalho de exposição gradual. Introduzir técnicas de regulação emocional. Manter registro de pensamentos como tarefa de casa.',
+      });
+    }
+  },400);
+}
+
+function preencherEvolucao(j){
+  document.getElementById('p-resumo').textContent=j.resumo||'';
+  document.getElementById('p-conteudo').textContent=j.conteudo||'';
+  document.getElementById('p-intervencoes').textContent=j.intervencoes||'';
+  document.getElementById('p-evolucao').textContent=j.evolucao_clinica||'';
+  document.getElementById('p-plano').textContent=j.plano||'';
+}
+
+async function regenerar(){document.getElementById('evol-loading').style.display='flex';document.getElementById('evol-conteudo').style.display='none';await gerarEvolucao(getTexto());}
+
+function salvarSessao(){
+  setStep(4);
+  document.getElementById('etapa-evolucao').style.display='none';
+  document.getElementById('etapa-salvo').style.display='block';
+  const pac=document.getElementById('sess-paciente');
+  const nome=pac.options[pac.selectedIndex]?.text||'Paciente';
+  const data=document.getElementById('sess-data').value;
+  document.getElementById('salvo-info').textContent=`${nome} · ${data}`;
+  toast('Prontuário salvo com sucesso','🌿');
+}
+
+function novaSessao(){iniciarSessao();}
+
+function copiarProntuario(){
+  const secs=[{id:'p-resumo',l:'RESUMO'},{id:'p-conteudo',l:'CONTEÚDO'},{id:'p-intervencoes',l:'INTERVENÇÕES'},{id:'p-evolucao',l:'EVOLUÇÃO CLÍNICA'},{id:'p-plano',l:'PLANO'}];
+  let txt='EVOLUÇÃO DE PRONTUÁRIO\n'+'─'.repeat(36)+'\n\n';
+  secs.forEach(s=>{const el=document.getElementById(s.id);if(el?.textContent.trim())txt+=`${s.l}\n${el.textContent.trim()}\n\n`;});
+  navigator.clipboard.writeText(txt).then(()=>toast('Copiado','📋'));
+}
+
+// ── GRAVAÇÃO ──
+let recog=null, isRec=false, recSecs=0, recIv=null;
+let modoAtual='ao-vivo';
+
+function setModo(m){
+  modoAtual=m;
+  document.getElementById('modo-ao-vivo').style.display=m==='ao-vivo'?'block':'none';
+  document.getElementById('modo-upload').style.display=m==='upload'?'block':'none';
+  document.getElementById('tab-ao-vivo').className='mode-tab'+(m==='ao-vivo'?' active':'');
+  document.getElementById('tab-upload').className='mode-tab'+(m==='upload'?' active':'');
+  if(m!=='ao-vivo'&&isRec) pararRec();
+}
+
+function toggleRec(){isRec?pararRec():iniciarRec();}
+
+function iniciarRec(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){document.getElementById('live-text').textContent='Navegador sem suporte. Use Chrome/Edge ou escolha "Upload / texto".';return;}
+  recog=new SR();recog.lang='pt-BR';recog.continuous=true;recog.interimResults=true;
+  let final='';
+  recog.onresult=e=>{
+    let int='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)final+=e.results[i][0].transcript+' ';
+      else int+=e.results[i][0].transcript;
+    }
+    const el=document.getElementById('live-text');
+    el.innerHTML=(final?`<span>${final}</span>`:'')+( int?`<span class="interim">${int}</span>`:'');
+    el.scrollTop=el.scrollHeight;
+  };
+  recog.start(); isRec=true; recSecs=0;
+  document.getElementById('rec-btn').classList.add('on');
+  document.getElementById('rec-zone').classList.add('active-rec');
+  document.getElementById('rec-mic').style.display='none';
+  document.getElementById('rec-stop').style.display='block';
+  document.getElementById('rec-label').textContent='Gravando... Clique para parar';
+  document.getElementById('rec-time').style.display='block';
+  recIv=setInterval(()=>{recSecs++;const m=String(Math.floor(recSecs/60)).padStart(2,'0');const s=String(recSecs%60).padStart(2,'0');document.getElementById('rec-time').textContent=`${m}:${s}`;},1000);
+}
+
+function pararRec(){
+  if(recog){recog.stop();recog=null;}
+  isRec=false; clearInterval(recIv);
+  document.getElementById('rec-btn').classList.remove('on');
+  document.getElementById('rec-zone').classList.remove('active-rec');
+  document.getElementById('rec-mic').style.display='block';
+  document.getElementById('rec-stop').style.display='none';
+  document.getElementById('rec-label').textContent='Gravação concluída. Clique para gravar novamente.';
+}
+
+function limparRec(){document.getElementById('live-text').innerHTML='A transcrição aparece aqui em tempo real...';}
+
+// ── MODAIS / PACIENTES ──
+function abrirPaciente(id){
+  const p=MOCK.pacientes.find(x=>x.id===id);if(!p)return;
+  document.getElementById('mp-nome').textContent=p.nome;
+  document.getElementById('mp-abordagem').textContent=p.abordagem;
+  document.getElementById('mp-psi').textContent=p.psi;
+  document.getElementById('mp-prontuario').innerHTML=`
+    <div class="pront-section"><div class="pront-label">Evolução mais recente</div>
+    <div class="pront-block">Paciente demonstra progressiva internalização das estratégias cognitivas aprendidas. Boa adesão às tarefas de casa. Evolução clínica positiva e consistente com os objetivos terapêuticos estabelecidos.</div></div>
+    <div style="font-size:12px;color:var(--ink3);margin-top:10px">${p.totalSessoes} sessões registradas</div>`;
+  abrirModal('modal-paciente');
+}
+
+function abrirAgendar(){abrirModal('modal-agendar');}
+function abrirNovoPaciente(){abrirModal('modal-agendar');}
+function abrirModal(id){document.getElementById(id).style.display='flex';}
+function fecharModal(id){document.getElementById(id).style.display='none';}
+function salvarAgendamento(){fecharModal('modal-agendar');toast('Agendamento confirmado','📅');}
+
+// ── TOAST ──
+let _tt;
+function toast(msg,icon='✓'){
+  clearTimeout(_tt);
+  document.getElementById('toast-msg').textContent=msg;
+  document.getElementById('toast-icon').textContent=icon;
+  const t=document.getElementById('toast');t.style.display='flex';
+  _tt=setTimeout(()=>t.style.display='none',3500);
+}
+</script>
+</body>
+</html>
